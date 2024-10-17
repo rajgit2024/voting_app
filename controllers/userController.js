@@ -1,4 +1,5 @@
 const userModel=require("../models/user");
+
 const bcrypt=require("bcrypt");
 
 //Register a user
@@ -6,7 +7,7 @@ const registerUser=async(req,res)=>{
 const {name,age,email,mobile,address,adharcardnumber,password,role}=req.body;
 try {
     const user=await userModel.userByGmail(email);
-    if(user) return res.send("User does exist!").json({message:"Try with another gmail"});
+    if(user) return res.status(400).send('User already exists');
     const salt=await bcrypt.genSalt(10);
     const hashPassword=await bcrypt.hash(password,salt);
 
@@ -14,11 +15,12 @@ try {
     const newUser=await userModel.createUser(name,age,email,mobile,address,adharcardnumber,hashPassword,role);
 
     //Adding session to register user and setting cookie
-    req.session.userId=newUser.rows[0].id;
-    res.cookie("userId",newUser.rows[0].id,{httpOnly:true});
+    req.session.userId=newUser.id;
+    res.cookie("userId",newUser.id,{httpOnly:true});
     res.status(201).json({message:"user registered successfull"});
 } catch (error) {
-    res.send(404).json({error:"Invalid input!"});
+    console.error(error);
+    return res.status(500).send('Internal Server Error');
 }
 }
 
@@ -28,13 +30,13 @@ const loginUser=async(req,res)=>{
         const{email,password}=req.body;
         const user=await userModel.userByGmail(email);
         const isMatch=await userModel.comparePass(password,user.password);
-        if(!user || !isMatch) return res.send("Invalid username or password!").json({message:"Password Or username might be wrong"});
+        if(!user || !isMatch) res.status(404).send('User not found!');
         
         //Adding session and setting cookies
         req.session.userId=user.id;
         req.session.save((err)=>{
             if(err){
-                res.send(500).json({message:"Session saving error",error:err});
+              return  res.status(500).send('Session not saved');
             }
             res.cookie("userId",newUser.id,{
                 httpOnly:true,
@@ -46,7 +48,27 @@ const loginUser=async(req,res)=>{
         res.cookie("userId",user.id,{httpOnly:true});
         res.status(200).json({message:"Login successfull"});
     } catch (error) {
-        res.send(404).json({error:"Invalid input!"});
+        console.error(error);
+        return res.status(500).send('Internal Server Error');
+    }
+   
+}
+
+//user profile
+const userProfile=async(req,res)=>{
+    try {
+        const userId=req.session.userId;
+        if(!userId) return res.status(404).send('User session expire');
+        const user=await userModel.userrId(userId);
+        if(!user) res.status(404).send('User not exists');
+        const {name,age,email,mobile,address,adharcardnumber,role}=user;
+        res.send(200).json({
+            name,age,email,mobile,address,adharcardnumber,role
+        })
+    } catch (error) {
+        console.error(error);
+        return res.status(500).send('Internal Server Error');
+        
     }
    
 }
@@ -56,9 +78,9 @@ const updatePass=async(req,res)=>{
     const {userId,currentPass,newPass}=req.body;
     try {
         const user=await userModel.userrId(userId);
-        if(!user) return res.send("User not found!").json({message:"ReEnter the username"});
+        if(!user) res.status(404).send('User not exists');
         const isMatch=await userModel.comparePass(currentPass,user.password);
-        if(!isMatch) return res.send("Current password is wrong!")
+        if(!isMatch) res.status(201).send('Password is wrong!');
         else{
             const salt=await  bcrypt.genSalt(10);
             const hashPassword=await  bcrypt.hash(newPass,salt);
@@ -67,12 +89,14 @@ const updatePass=async(req,res)=>{
         }
         
     } catch (error) {
-        res.send(404).json({error:"Invalid input!"});
+        console.error(error);
+        return res.status(500).send('Internal Server Error');
     }
 }
 
 module.exports={
     registerUser,
     loginUser,
-    updatePass
+    updatePass,
+    userProfile
 };

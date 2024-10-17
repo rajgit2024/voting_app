@@ -1,27 +1,27 @@
+const { response } = require("express");
 const pool=require("../config/db");
 const bcrypt = require('bcrypt');
 
 //Add new user (hashed password)
-const createUser= async({name,age,email,mobile,address,adharcardnumber,password,role})=>{
+const createUser= async(name,age,email,mobile,address,adharcardnumber,password,role)=>{
     try {
         
+    const result=await pool.query("INSERT INTO users (name,age,email,mobile,address,adharcardnumber,password,role)  VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *",[name,age,email,mobile,address,adharcardnumber,password,role]);
 
-        const result=pool.query("INSERT (name,age,email,mobile,address,adharcardnumber,hashPassword,role) INTO user VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *",[name,age,email,mobile,address,adharcardnumber,hashPassword,role]);
+        return result.rows[0];
 
-        return result.row[0];
-
-    } catch (err) {
-        throw(err).json({message:"Complete the details!"});
+    } catch (error) {
+        throw error;
     } 
 }
 
 //find user by id
 const userrId=async (id)=>{
 try {
-    const result=await pool.query("SELECT * FROM user WHERE id=$1",[id]);
+    const result=await pool.query("SELECT * FROM users WHERE id=$1",[id]);
     return result.rows[0];
 } catch (error) {
-    
+    throw error;
 }
 }
 //Update password
@@ -30,7 +30,7 @@ try {
     const result=await pool.query("UPDATE users SET password=$1 WHERE id=$2 RETURING *",[newPass,id]);
     return result.rows[0];
 } catch (error) {
-    throw (error)
+    throw error;
 }
 }
 
@@ -38,10 +38,15 @@ try {
 const userByGmail=async(email)=>{
     
     try {
-        const userGmail=await pool.query("SELECT * FROM users WHERE email=$1",[email]);
-    return result.row[0];
-    } catch (err) {
-        throw err
+        const result=await pool.query("SELECT * FROM users WHERE email=$1",[email]);
+        // Check if a user was found
+        if (result.rows.length > 0) {
+            return result.rows[0]; // Return the found user
+        } else {
+            return null;
+        }
+    } catch (error) {
+        throw error;
     }
 }
 

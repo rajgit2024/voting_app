@@ -1,7 +1,10 @@
-const express=require("exprees");
+const express=require("express");
 const userController=require("../controllers/userController");
-const routes=express.Router();
+const route=express.Router();
 
-routes.post("/login",userController.loginUser);
-routes.post("/register",userController.registerUser);
-routes.post("/login/updateprofile",userController.updatePass);
+route.post("/login",userController.loginUser);
+route.post("/register",userController.registerUser);
+route.get("/profile",userController.userProfile);
+route.put("/profile/password",userController.updatePass);
+
+module.exports=route;
