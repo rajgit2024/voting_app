@@ -1,3 +1,4 @@
+const { jwtAuthMiddleware, generateToken } = require("../middlewares/roleMiddleware");
 const userModel=require("../models/user");
 
 const bcrypt=require("bcrypt");
@@ -14,41 +15,51 @@ try {
     //Creating User and inserting in database by the help of createUser function
     const newUser=await userModel.createUser(name,age,email,mobile,address,adharcardnumber,hashPassword,role);
 
-    //Adding session to register user and setting cookie
-    req.session.userId=newUser.id;
-    res.cookie("userId",newUser.id,{httpOnly:true});
-    res.status(201).json({message:"user registered successfull"});
+    //Generating token not storing
+    const payload={
+        email:newUser.email,
+        id:newUser.id,
+        role:newUser.role
+    }
+    console.log("The payload is",payload);
+    
+    const token=generateToken(payload);
+    console.log("The Token generated is:",token);
+
+    res.status(201).json({message:"User created sucessfully",token:token});
 } catch (error) {
-    console.error(error);
+    console.error('Error during user registration:', error);
     return res.status(500).send('Internal Server Error');
 }
 }
 
 //login user
 const loginUser=async(req,res)=>{
+    const{email,password}=req.body;
     try {
-        const{email,password}=req.body;
         const user=await userModel.userByGmail(email);
-        const isMatch=await userModel.comparePass(password,user.password);
-        if(!user || !isMatch) res.status(404).send('User not found!');
+        console.log("Retriev user",user);
         
-        //Adding session and setting cookies
-        req.session.userId=user.id;
-        req.session.save((err)=>{
-            if(err){
-              return  res.status(500).send('Session not saved');
-            }
-            res.cookie("userId",newUser.id,{
-                httpOnly:true,
-                maxAge:1000*60*60*24,
-                secure:process.env.PG_SEC,
-                sameSite:"strict"
-            })
-        })
-        res.cookie("userId",user.id,{httpOnly:true});
-        res.status(200).json({message:"Login successfull"});
-    } catch (error) {
-        console.error(error);
+        if(!user){
+          return res.status(404).send("User not found")
+        } 
+        const isMatch=await userModel.comparePass(password,user.password);
+        console.log('Password match:', isMatch);
+        if (!isMatch) return res.status(401).send("Password not match!");
+
+        const payload={
+            email:user.email,
+            id:user.id,
+            role:user.role
+        }
+        console.log("The given payload is",payload);
+        
+       const token=generateToken(payload);
+       console.log("The Login token is",token);
+       return res.status(200).json({message:"Login Sucessfull",token:token});
+
+        } catch (error) {
+        console.error('Error during login:', error);
         return res.status(500).send('Internal Server Error');
     }
    

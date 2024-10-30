@@ -7,8 +7,7 @@ const createUser= async(name,age,email,mobile,address,adharcardnumber,password,r
     try {
         
     const result=await pool.query("INSERT INTO users (name,age,email,mobile,address,adharcardnumber,password,role)  VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *",[name,age,email,mobile,address,adharcardnumber,password,role]);
-
-        return result.rows[0];
+    return result.rows[0];
 
     } catch (error) {
         throw error;
@@ -38,16 +37,14 @@ try {
 const userByGmail=async(email)=>{
     
     try {
+        console.log('Searching for user with email:', email);
         const result=await pool.query("SELECT * FROM users WHERE email=$1",[email]);
-        // Check if a user was found
-        if (result.rows.length > 0) {
-            return result.rows[0]; // Return the found user
-        } else {
-            return null;
-        }
-    } catch (error) {
+        console.log('Storing result.rows', result.rows);
+       return result.rows[0];
+    }  catch (error) {
+        console.error('Error querying database:', error);
         throw error;
-    }
+      }
 }
 
 //Compare password with hash password
@@ -55,7 +52,7 @@ const userByGmail=async(email)=>{
 const comparePass= async (enteredPassword, storedPasswordHash) => {
     try {
      const isMatch =  await bcrypt.compare(enteredPassword, storedPasswordHash);
-       return isMatch;
+    return isMatch;
     } catch (error) {
       console.error('Error comparing passwords:', error);
       throw error;

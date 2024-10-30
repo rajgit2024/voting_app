@@ -2,8 +2,10 @@
 const express = require('express');
 const session = require("express-session");
 const userRoute = require('./routes/userRoutes.js');
+const candiRoute=require("./routes/candidatesRoutes");
 const cookieParser = require("cookie-parser");
 const morgan = require('morgan'); // Optional for logging
+const cors = require('cors');
 
 // Initialize the Express app
 const app = express();
@@ -20,23 +22,31 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use(session({
-  secret: process.env.SESS_SEC,
+  secret: process.env.SESS_SECR,
   resave: false,
   saveUninitialized: true,
   cookie: {
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24,
-    secure: process.env.NODE_ENV === 'production', // secure only in production
+    secure: process.env.NODE_ENV // secure only in production
   }
 }));
+app.use(cors({
+  origin: 'http://localhost:3000', // Replace with your frontend URL
+  credentials: true // Allow credentials (cookies, authorization headers)
+}));
 
-// Define a simple GET route
-app.get('/', (req, res) => {
-  res.send('Hello, World!');
+app.get('/session-check', (req, res) => {
+  console.log('Session data:', req.session);
+  if (req.session.userId) {
+    return res.send('Session is active');
+  }
+  return res.send('No active session');
 });
 
-// Use user routes
+// Use Users and Candidates routes
 app.use("/user", userRoute);
+app.use("/candidates",candiRoute);
 
 // Define a POST route to handle incoming data
 app.post('/data', (req, res) => {
