@@ -43,15 +43,32 @@ const candByid=async(id)=>{
     return result.rows[0]; 
 }
 
+
+
 const showCandi=async()=>{
     try {
     const result=pool.query("SELECT * FROM candidates");
-    return result.rows;
+    return result.rows[0];
     } catch (error) {
         throw error;
     }
     
 }
+
+//Increment vote count by 1  //id=candidate_id;
+const IncrementVotes=async(id)=>{
+    try {
+        const result=await pool.query("UPDATE candidates SET vote_count=vote_count+1 WHERE id=$1 RETURNING *",[id]);
+        console.log("The Increment vote",result);
+        
+        return result.rows[0];
+    } catch (error) {
+        console.error("IncrementVotes error in catch",error);
+        throw error;
+    }
+    
+}
+
 
 module.exports={
     newCandidate,
@@ -59,5 +76,6 @@ module.exports={
     deleteId,
     updateCand,
     showCandi,
-    candByid
+    candByid,
+    IncrementVotes,
 };

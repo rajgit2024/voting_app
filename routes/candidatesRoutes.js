@@ -8,5 +8,6 @@ route.post("/create",jwtAuthMiddleware,candiController.createCandidate);
 route.put("/:id",jwtAuthMiddleware,candiController.updateCandidate);
 route.delete("/:id",candiController.deleteCand);
 route.get("/",candiController.renderAllCandidate);
+route.post("/votes",jwtAuthMiddleware,candiController.vote);
 
 module.exports=route;

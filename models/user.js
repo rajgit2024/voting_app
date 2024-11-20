@@ -58,6 +58,25 @@ const comparePass= async (enteredPassword, storedPasswordHash) => {
       throw error;
     }
   };
+
+const updateIsVoted=async(id)=>{
+    try {
+        const result=await pool.query("UPDATE users SET isvoted=true WHERE id=$1 RETURNING *",[id]);
+        return result.rows[0];
+    } catch (error) {
+        
+    }
+}
+
+const countRole=async(role)=>{
+    try {
+        const result=await pool.query("SELECT COUNT(*) FROM users WHERE role=$1",[role])
+        return parseInt(result.rows[0].count,10)
+    } catch (error) {
+        console.error("The error in countRole try section",error);
+        throw error;
+    }
+}
   
 
 module.exports={
@@ -65,5 +84,7 @@ module.exports={
     userrId,
     userByGmail,
     comparePass,
-    updatePassword
+    updatePassword,
+    updateIsVoted,
+    countRole
 }

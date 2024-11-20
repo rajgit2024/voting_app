@@ -18,6 +18,8 @@ const jwtAuthMiddleware=(req,res,next)=>{
 }
 
 //Generate krte wakt humme user ka payload chahiye; payload=userdate
+//Generate token ek function hai
+//Jisme ki payload or userDate and Secret key hota hai
 const generateToken=(userData)=>{
 return jwt.sign(userData,process.env.JWT_KEY,{expiresIn:"1h"});
 }

@@ -42,3 +42,14 @@ Admin candidate Management:
      /candidate: POST - create a new candidate.
      /candidate/candidateId: PUT - update an existing candidate.
      /candidate/candidateId: delete - Delete a candidate from a list.
+
+Only one admin in the database that manage all the records and data
+
+//Abhi tak kya bna hai
+1.user - register and login done
+2.candidates- admin(insert,delete,update),user(view) done
+3.voting- admin not allow to vote,only voter can give vote
+4.Upgradation- candidate votecount upgrade,user isVoted is true after voted to a candidates
+
+//Abb kya krna baaki hai
+voter- sirf ek baar vote deskta hai kissi ek hee candidates ko

@@ -9,6 +9,13 @@ const {name,age,email,mobile,address,adharcardnumber,password,role}=req.body;
 try {
     const user=await userModel.userByGmail(email);
     if(user) return res.status(400).send('User already exists');
+    //Only single admin allowed
+    if(role==="admin"){
+       const admins=await userModel.countRole("admin");
+       if(admins>=1) {
+        return res.status(500).json({message:"Only one admin is allowed!"});
+       }
+    }
     const salt=await bcrypt.genSalt(10);
     const hashPassword=await bcrypt.hash(password,salt);
 
